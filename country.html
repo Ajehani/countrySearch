@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A1</title>
+    <style>
+        html{
+            font-family: Verdana, Geneva, Tahoma, sans-serif;
+            background-color: black;
+            color:white;
+            text-align: center;
+        }
+        #wrapper{
+            margin: 0 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            translate:translate(-50%,0);
+        }
+        select{
+            margin: 5rem 0;
+        }
+        img{
+            width:2rem;
+            height:2rem;
+        }
+        tr,td,th{
+            border: 1px solid white;
+
+        }
+        table{
+            border: 1px solid white;
+            width:100%;
+            border-collapse:collapse;
+        }
+        #info{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .infoChild{
+            font-size: large;
+            width:20rem;
+        }
+        #srch{
+            display: flex;
+            justify-content: center;
+        }
+    </style>
+</head>
+<body>
+    <div id="wrapper">
+        <div id="srch">
+            <input type="search">
+            <button>Search!</button>
+        </div>
+        <div id="info">
+        </div>
+    <select>
+        <!-- <option value="">Please Select A Region</option> -->
+    </select>
+    <table></table>
+    </div>
+</body>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        let table = $("table");
+        let arr = {};
+        let regex = new RegExp();
+        let flag = false;
+        const tabulate = data =>{
+            table.empty();
+            $("#info").empty();
+            let str = `<tr><th>Flag</th><th>Name</th><th>Capital</th><th>Population</th><th>Language</th></tr>`;
+            let avg = 0;
+            let count = 0;
+            let num = 0;
+            data = Array.from(data);
+            let most =  {};
+            arr = flag ? arr : data; //caching
+            for(let i=0;i<data.length;i++){
+                if(regex.test(data[i]["name"].toLowerCase()) || regex.test(data[i]["capital"].toLowerCase())){
+                    most[data[i]["info"]["language"]] = most[data[i]["info"]["language"]] ? most[data[i]["info"]["language"]] + 1 : 1;
+                    count += 1;
+                    avg += data[i]["info"]["population"];
+                    str += `<tr><td><img src='${data[i]["flag"]}'></td><td>${data[i]["name"]}</td><td>${data[i]["capital"]}</td><td>${data[i]["info"]["population"]}</td><td>${data[i]["info"]["language"]}</td></tr>`
+                }
+            }
+            let temp = 0; // all to find most popular language
+            let lang = null;
+            for(let key in most){
+                if(most[key] > temp){
+                    temp = most[key];
+                    lang = key;
+                } 
+            }
+            $("#info").append(`<div class='infoChild'>Total Countries: ${count}</div>`);
+            $("#info").append(`<div class='infoChild'>Average Population: ${Math.round((avg/count))}</div>`);
+            $("#info").append(`<div class='infoChild'>Most Popular Language: ${lang}`);
+            $("#info").append(`How Many Countries: ${temp}</div>`);
+            table.append(str);
+        }
+        $("select").load("https://www.cs.kent.ac.uk/people/staff/yh/co539-A1/countryData.php?regions",function(data){
+            data = JSON.parse(data);
+            for(let i=0;i<data.length;i++) $("select").append(`<option value='${data[i]}'>${data[i]}</option>`);
+            $("select").on("change",function(){
+                arr = {};
+                flag = false;
+                $("input[type='search'").val("");
+                $.get(`https://www.cs.kent.ac.uk/people/staff/yh/co539-A1/countryData.php?region=${this.value}`,tabulate,"json");
+            })
+            $("input[type='search'").on("input",function(){regex = new RegExp(`.*${this.value.toLowerCase()}.*`)});
+            $("button").on("click",()=>{
+                flag = true;
+                tabulate(arr,regex)
+            })
+        })
+    })
+</script>
+</html>
